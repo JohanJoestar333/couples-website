@@ -9,13 +9,13 @@
    • Desktop / non-touch: does nothing at all.
 
    A small "Vibration on/off" switch is added to the footer on touch devices;
-   the choice is remembered in localStorage ("gfHaptics" = "off" to disable).
+   the choice is remembered in localStorage ("cwHaptics" = "off" to disable).
    Nothing here changes what any button does — it only adds feedback.
    ========================================================================== */
 (function () {
   "use strict";
 
-  var KEY = "gfHaptics";
+  var KEY = "cwHaptics";
 
   // Feel of each kind of interaction (milliseconds; arrays are buzz/pause/buzz…)
   var PATTERNS = {
@@ -191,5 +191,5 @@
   }
 
   // Small public hook in case other code wants to buzz later.
-  window.gfHaptics = { buzz: buzz, supported: supported };
+  window.cwHaptics = { buzz: buzz, supported: supported };
 })();

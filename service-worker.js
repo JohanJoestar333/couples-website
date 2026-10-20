@@ -5,8 +5,12 @@
   browser drops the old cached files instead of getting stuck on them.
 */
 const CACHE_VERSION = "v1.5.2";
-const CORE_CACHE = "for-you-core-" + CACHE_VERSION;
-const RUNTIME_CACHE = "for-you-runtime-" + CACHE_VERSION;
+// Cache names carry a prefix so this site only ever clears its own caches —
+// other sites on the same address (e.g. another project on the same
+// username.github.io) keep theirs.
+const CACHE_PREFIX = "couples-site-";
+const CORE_CACHE = CACHE_PREFIX + "core-" + CACHE_VERSION;
+const RUNTIME_CACHE = CACHE_PREFIX + "runtime-" + CACHE_VERSION;
 
 // The app shell — small, same-origin files needed for the site to boot.
 // Photos aren't precached here (there are many, and they're large); they're
@@ -50,7 +54,12 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key !== CORE_CACHE && key !== RUNTIME_CACHE)
+            .filter(
+              (key) =>
+                key.startsWith(CACHE_PREFIX) &&
+                key !== CORE_CACHE &&
+                key !== RUNTIME_CACHE,
+            )
             .map((key) => caches.delete(key)),
         ),
       )

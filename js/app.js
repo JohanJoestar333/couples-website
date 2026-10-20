@@ -39,9 +39,9 @@
    ================================================================ */
 
 // ---------- dark / night mode ----------
-// Preference stored in localStorage key "gfTheme" = "light" | "dark"
+// Preference stored in localStorage key "cwTheme" = "light" | "dark"
 function currentTheme() {
-  const t = localStorage.getItem("gfTheme");
+  const t = localStorage.getItem("cwTheme");
   if (t === "light" || t === "dark") return t;
   try {
     if (
@@ -84,7 +84,7 @@ function applyTheme(theme) {
 }
 function toggleTheme() {
   const next = currentTheme() === "dark" ? "light" : "dark";
-  localStorage.setItem("gfTheme", next);
+  localStorage.setItem("cwTheme", next);
   if (typeof prefersReducedMotion === "function" && prefersReducedMotion()) {
     applyTheme(next);
     return;
@@ -358,7 +358,7 @@ function spawnHeartBurst(originEl, count) {
 // stuff was added while you were away.
 //
 // Cross-device memory uses localStorage keys:
-//   gf_lastSeen_bucketlist  /  gf_lastSeen_music  / etc.
+//   cw_lastSeen_bucketlist  /  cw_lastSeen_music  / etc.
 // Each stores a timestamp (ms). Changes are only eligible for a catch-up
 // notification for 24 hours, then they expire and are never announced.
 let activeTab = "story";
@@ -430,7 +430,7 @@ function itemChangedMs(item) {
 }
 
 function getLastSeenMs(tab) {
-  const raw = localStorage.getItem("gf_lastSeen_" + tab);
+  const raw = localStorage.getItem("cw_lastSeen_" + tab);
   if (raw === null || raw === "") return null;
   const n = parseInt(raw, 10);
   return Number.isFinite(n) ? n : null;
@@ -442,7 +442,7 @@ function markTabSeen(tab, items) {
     const t = itemChangedMs(it);
     if (t > max) max = t;
   });
-  localStorage.setItem("gf_lastSeen_" + tab, String(max));
+  localStorage.setItem("cw_lastSeen_" + tab, String(max));
 }
 
 const CHANGE_NOTIFICATION_TTL = 24 * 60 * 60 * 1000;
@@ -1242,7 +1242,7 @@ function renderTodayOnThisDay() {
 // ---- World news (automatic daily headlines) ----
 // Prefers CONFIG.newsBackendUrl (Cloudflare Worker). Falls back to RSS
 // via public CORS proxies. Client cache ~6h. Not affiliated with CNN10.
-const NEWS_CACHE_KEY = "gfNewsCache_v2";
+const NEWS_CACHE_KEY = "cwNewsCache_v2";
 const NEWS_CACHE_MS = 6 * 60 * 60 * 1000;
 const NEWS_FEED_URL = "https://feeds.bbci.co.uk/news/world/rss.xml";
 
@@ -1443,7 +1443,7 @@ async function renderTodayNews() {
 // ---- Daily quote — 365 local quotes, one per calendar day ----
 // No quote API is used here. Everything is bundled locally so this widget
 // works offline and cannot create third-party quote/CORS console errors.
-const QUOTE_CACHE_KEY = "gfDailyQuote_v2";
+const QUOTE_CACHE_KEY = "cwDailyQuote_v2";
 let quoteRefreshing = false;
 let quoteMidnightTimer = null;
 
@@ -7581,9 +7581,9 @@ function initBouquetUI() {
    js/data/games.js.
    ================================================================ */
 
-const GAMES_LS_SHOWN = "gfGamesShown_v1";
-const GAMES_LS_STATS = "gfGamesStats_v1";
-const GAMES_LS_DAILY = "gfGamesDaily_v1";
+const GAMES_LS_SHOWN = "cwGamesShown_v1";
+const GAMES_LS_STATS = "cwGamesStats_v1";
+const GAMES_LS_DAILY = "cwGamesDaily_v1";
 
 function gamesLoadJSON(key, fallback) {
   try {
