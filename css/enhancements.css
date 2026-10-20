@@ -1,0 +1,1250 @@
+/* ============================================================
+   ENHANCEMENTS — enhancements.css
+   ------------------------------------------------------------
+   Everything layered on top of style.css:
+   scroll panes for the Bucket List / Movie lists, plus the
+   depth, texture, and section-specific visual upgrades
+   (visual polish pass). Loaded after style.css so it overrides by
+   cascade order, not !important. Paired with enhancements.js.
+
+   SECTION 1 — scroll panes
+   SECTION 2 — visual polish
+   ============================================================ */
+
+
+/* Animatable custom properties, so the top/bottom fades ease in
+   and out instead of snapping. Ignored by browsers that don't
+   support @property — the fades still work, just without the
+   easing. */
+
+
+.scroll-pane {
+  --pane-h: min(58vh, 520px);
+  --fade-size: 36px;
+  --fade-top: 0px;
+  --fade-bottom: 0px;
+  --pane-progress: 0;
+  position: relative;
+  transition:
+    --fade-top 0.25s ease,
+    --fade-bottom 0.25s ease;
+}
+
+.scroll-pane-scroller {
+  max-height: var(--pane-h);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 6px;
+  /* Breathing room so card shadows aren't clipped by the
+     overflow box, pulled back with a negative margin. */
+  padding: 6px 4px;
+  margin: -6px -4px;
+  transition: max-height 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Thin sage scrollbar instead of the OS default. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--sage) transparent;
+}
+.scroll-pane-scroller::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-pane-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-pane-scroller::-webkit-scrollbar-thumb {
+  background: var(--sage);
+  border-radius: 999px;
+}
+.scroll-pane-scroller::-webkit-scrollbar-thumb:hover {
+  background: var(--green);
+}
+
+/* Soft fade at whichever edge has more content behind it.
+   Only applied once the list actually overflows, so short
+   lists render exactly as they do today. */
+.scroll-pane.is-scrollable .scroll-pane-scroller {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--fade-top),
+    #000 calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--fade-top),
+    #000 calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+}
+
+/* Snap targets — the individual rows. */
+.scroll-pane-scroller .bucket-item,
+.scroll-pane-scroller .movie-card,
+.scroll-pane-scroller .photo-tile {
+  scroll-snap-align: start;
+}
+
+/* Visible focus ring when the pane is reached by keyboard. */
+.scroll-pane-scroller:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+
+/* ---- footer: position rail + expand toggle ---- */
+.scroll-pane-foot {
+  display: none;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.scroll-pane.is-scrollable .scroll-pane-foot,
+.scroll-pane.expanded .scroll-pane-foot {
+  display: flex;
+}
+/* Once fully expanded there's no "progress" left to show, so
+   drop the rail and let the Collapse button sit by itself. */
+.scroll-pane.expanded:not(.is-scrollable) .scroll-pane-rail {
+  display: none;
+}
+
+.scroll-pane-rail {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--sage-dim);
+  overflow: hidden;
+}
+.scroll-pane-rail::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 34%;
+  left: calc(var(--pane-progress) * 66%);
+  border-radius: 999px;
+  background: var(--gold);
+}
+
+.scroll-pane-toggle {
+  flex-shrink: 0;
+  font-family: var(--body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--green-deep);
+  background: transparent;
+  border: 1px solid var(--sage);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+.scroll-pane-toggle:hover {
+  background: var(--sage-dim);
+}
+.scroll-pane-toggle:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* Expanded: the pane grows to fit everything and behaves like
+   the page did before. */
+.scroll-pane.expanded {
+  --pane-h: 9999px;
+}
+.scroll-pane.expanded .scroll-pane-scroller {
+  scroll-snap-type: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-pane,
+  .scroll-pane-scroller {
+    transition: none;
+  }
+  .scroll-pane-scroller {
+    scroll-snap-type: none;
+  }
+}
+
+
+/* ---- albums: collapse/expand instead of an inner scroll pane ----
+   Each album is its own section with a clickable header; the photo
+   grid underneath (.masonry, defined in style.css) is a normal,
+   un-scrolled grid — no max-height, no fade mask, no "Show all"
+   pagination. Collapsed by default (see app.js renderAlbum()), so
+   opening the Album tab doesn't start loading every photo in every
+   album at once — only the ones in whichever album is actually open. */
+.album-collapse-toggle {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--sage);
+  background: transparent;
+  color: var(--green-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.25s ease;
+}
+.album-collapse-toggle:hover {
+  background: var(--sage-dim);
+}
+.album-collapse-toggle:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.album-collapse-chevron {
+  display: inline-block;
+  transition: transform 0.25s ease;
+}
+/* Collapsed is the default visual state — the chevron points right
+   (closed) and flips down to point down when the album is open. */
+.album-collapsible .album-collapse-chevron {
+  transform: rotate(-90deg);
+}
+.album-collapsible:not(.collapsed) .album-collapse-chevron {
+  transform: rotate(0deg);
+}
+.album-collapsible .masonry {
+  display: none;
+}
+.album-collapsible:not(.collapsed) .masonry {
+  display: grid;
+  animation: albumExpand 0.35s ease;
+}
+@keyframes albumExpand {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.album-collapsible.collapsed .album-cat-empty {
+  display: none;
+}
+/* Delete ("✕") only makes sense once an album is open — closed albums
+   show just the title and chevron, so nothing looks deletable until
+   the person actually opens it up. */
+.album-collapsible.collapsed .album-del-btn {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .album-collapse-chevron,
+  .album-collapse-toggle {
+    transition: none;
+  }
+  .album-collapsible:not(.collapsed) .masonry {
+    animation: none;
+  }
+}
+
+
+/* ============================================================
+   SECTION 2 — VISUAL POLISH
+   ============================================================ */
+
+/* A single soft shadow reads flat. Three stacked at different
+   blurs is what makes a card look like it's actually sitting on
+   the page. */
+:root {
+  --shadow-tiny:
+    0 1px 2px rgba(43, 38, 34, 0.05), 0 3px 8px -4px rgba(43, 38, 34, 0.09),
+    0 8px 20px -10px rgba(43, 38, 34, 0.1);
+  --shadow-soft:
+    0 1px 3px rgba(43, 38, 34, 0.05), 0 6px 18px -8px rgba(43, 38, 34, 0.12),
+    0 24px 48px -20px rgba(43, 38, 34, 0.18);
+  --shadow-lift:
+    0 2px 4px rgba(43, 38, 34, 0.06), 0 10px 24px -8px rgba(43, 38, 34, 0.16),
+    0 30px 60px -24px rgba(43, 38, 34, 0.22);
+}
+html[data-theme="dark"] {
+  --shadow-tiny:
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 3px 10px -4px rgba(0, 0, 0, 0.5),
+    0 10px 24px -12px rgba(0, 0, 0, 0.55);
+  --shadow-soft:
+    0 1px 3px rgba(0, 0, 0, 0.45), 0 8px 22px -8px rgba(0, 0, 0, 0.55),
+    0 28px 56px -22px rgba(0, 0, 0, 0.65);
+  --shadow-lift:
+    0 2px 6px rgba(0, 0, 0, 0.5), 0 12px 28px -8px rgba(0, 0, 0, 0.6),
+    0 34px 68px -26px rgba(0, 0, 0, 0.7);
+}
+
+.bucket-item,
+.movie-card,
+.ow-card,
+.fact-card {
+  transition:
+    box-shadow 0.28s ease,
+    transform 0.28s ease,
+    background 0.25s ease;
+}
+/* Guarded to real hover (mouse/trackpad) — both lists re-render
+   from scratch on every toggle/add/delete, so on touch, a "sticky"
+   hover on the just-tapped (now-recreated) row would cause an
+   unwanted little jump. Same fix as the tp-cards / calendar. */
+@media (hover: hover) and (pointer: fine) {
+  .bucket-item:hover,
+  .movie-card:hover {
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-2px);
+  }
+}
+
+/* ---------- 2. paper grain --------------------------------- */
+/* Flat #fff and flat cream are what make a page read as a
+   template. A few percent of noise over everything gives the
+   surfaces something to be. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+html[data-theme="dark"] body::after {
+  opacity: 0.055;
+}
+
+/* ---------- 3. selection + scrollbars ---------------------- */
+::selection {
+  background: var(--blush-soft);
+  color: var(--ink);
+}
+html[data-theme="dark"] ::selection {
+  background: var(--blush-soft);
+  color: var(--ink);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sage) transparent;
+}
+body::-webkit-scrollbar {
+  width: 10px;
+}
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+body::-webkit-scrollbar-thumb {
+  background: var(--sage);
+  border: 3px solid var(--cream);
+  border-radius: 999px;
+}
+
+/* ---------- 4. reading progress ---------------------------- */
+#readingProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 9997;
+  pointer-events: none;
+  background: transparent;
+}
+#readingProgress i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--sage), var(--gold));
+  transition: width 0.12s linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  #readingProgress i {
+    transition: none;
+  }
+}
+
+/* ---------- 5. subsection titles --------------------------- */
+/* Favorites / Fun Facts / Our Firsts were three inline-styled
+   h3s. One class, one rule, consistent rhythm. */
+.subsection-title {
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: var(--green-deep);
+  text-align: center;
+  margin: 0 0 22px;
+}
+.subsection-title::after {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 1px;
+  margin: 12px auto 0;
+  background: var(--sage);
+}
+
+/* ---------- 6. bucket list --------------------------------- */
+
+/* --- constellation --- */
+/* Replaces the flat percentage bar. Every item is a star; the
+   ones you've done are lit and joined by a thread. */
+.bucket-sky {
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto 10px;
+  padding: 22px 20px 18px;
+  border-radius: var(--radius-md);
+  background:
+    radial-gradient(
+      120% 140% at 50% 0%,
+      rgba(111, 91, 138, 0.22),
+      transparent 60%
+    ),
+    linear-gradient(170deg, var(--night), var(--night-deep));
+  box-shadow: var(--shadow-tiny);
+  overflow: hidden;
+}
+.bucket-sky-svg {
+  display: block;
+  width: 100%;
+  height: 74px;
+  overflow: visible;
+}
+.bucket-sky-thread {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.45;
+  stroke-dasharray: var(--thread-len, 1000);
+  stroke-dashoffset: var(--thread-off, 1000);
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.bucket-star {
+  fill: var(--stars);
+  opacity: 0.2;
+  transition:
+    opacity 0.5s ease,
+    r 0.5s ease;
+}
+.bucket-star.lit {
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--gold));
+}
+.bucket-sky-label {
+  margin: 12px 0 0;
+  text-align: center;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: var(--stars);
+}
+.bucket-sky-label b {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* The original bar is kept in the DOM (app.js writes to it) but
+   folded away — the sky is the progress display now. */
+.bucket-progress .bucket-progress-bar,
+.bucket-progress .bucket-progress-label {
+  display: none;
+}
+
+/* --- filters --- */
+.bucket-filters {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 640px;
+  margin: 0 auto 18px;
+}
+.bucket-filter {
+  font-family: var(--body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--sage-dim);
+  border-radius: 999px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.bucket-filter:hover {
+  border-color: var(--sage);
+  color: var(--ink);
+}
+.bucket-filter.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.bucket-filter .n {
+  opacity: 0.65;
+  font-weight: 400;
+  margin-left: 5px;
+}
+
+.bucket-list.filter-todo .bucket-item.done,
+.bucket-list.filter-done .bucket-item:not(.done) {
+  display: none;
+}
+
+/* Done items recede rather than shouting. */
+.bucket-item.done {
+  box-shadow: none;
+  border-color: transparent;
+}
+.bucket-item.done:hover {
+  box-shadow: var(--shadow-tiny);
+}
+
+/* --- empty state: dashed "nothing here yet" card, extended to
+   every empty-state spot on the site (was bucket/movies only),
+   plus a small floating icon instead of bare italic text --- */
+.bucket-empty,
+.movie-empty,
+.cal-empty,
+.today-empty,
+.music-empty {
+  margin: 0;
+  padding: 40px 24px 24px;
+  text-align: center;
+  font-family: var(--serif);
+  border: 1px dashed var(--sage-dim);
+  border-radius: var(--radius-md);
+  background: transparent;
+  position: relative;
+}
+.bucket-empty,
+.movie-empty {
+  font-size: 1.1rem;
+}
+.bucket-empty::before,
+.movie-empty::before,
+.cal-empty::before,
+.today-empty::before,
+.music-empty::before {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: 0 auto 10px;
+  background: var(--sage);
+  opacity: 0.55;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s-7.5-4.6-10-9.3C.4 8.3 2 4.5 5.7 4c2-.3 3.7.6 4.9 2.3l1.4 1.9 1.4-1.9C14.6 4.6 16.3 3.7 18.3 4c3.7.5 5.3 4.3 3.7 7.7C21.5 16.4 12 21 12 21z'/></svg>")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s-7.5-4.6-10-9.3C.4 8.3 2 4.5 5.7 4c2-.3 3.7.6 4.9 2.3l1.4 1.9 1.4-1.9C14.6 4.6 16.3 3.7 18.3 4c3.7.5 5.3 4.3 3.7 7.7C21.5 16.4 12 21 12 21z'/></svg>")
+    center / contain no-repeat;
+  animation: emptyIconFloat 3.2s ease-in-out infinite;
+}
+@keyframes emptyIconFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bucket-empty::before,
+  .movie-empty::before,
+  .cal-empty::before,
+  .today-empty::before,
+  .music-empty::before {
+    animation: none;
+  }
+}
+
+/* ---------- 7. movies -------------------------------------- */
+
+/* The watchlist becomes a wall of posters on wider screens;
+   watched stays one per row so the stubs read properly. */
+#movieToWatchList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+#movieToWatchList .movie-empty {
+  grid-column: 1 / -1;
+}
+
+.movie-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+/* Ambient light: the poster, blown up and blurred behind the
+   card, so each film brings its own colour. */
+.movie-card.has-ambient::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  background-image: var(--ambient);
+  background-size: cover;
+  background-position: center;
+  filter: blur(34px) saturate(1.7);
+  opacity: 0.22;
+  transition: opacity 0.3s ease;
+}
+.movie-card.has-ambient:hover::before {
+  opacity: 0.32;
+}
+html[data-theme="dark"] .movie-card.has-ambient::before {
+  opacity: 0.3;
+}
+
+.movie-poster {
+  width: 74px;
+  height: 111px;
+  border-radius: 8px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 8px 18px -8px rgba(0, 0, 0, 0.35);
+}
+
+/* Watched films are ticket stubs: notched sides and a
+   perforation between the poster and the details. */
+#movieWatchedList .movie-card {
+  --notch: 9px;
+  border-radius: 6px;
+  -webkit-mask-image:
+    radial-gradient(
+      circle var(--notch) at 0 50%,
+      transparent 97%,
+      #000 100%
+    ),
+    radial-gradient(circle var(--notch) at 100% 50%, transparent 97%, #000 100%);
+  mask-image:
+    radial-gradient(
+      circle var(--notch) at 0 50%,
+      transparent 97%,
+      #000 100%
+    ),
+    radial-gradient(circle var(--notch) at 100% 50%, transparent 97%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+#movieWatchedList .movie-poster {
+  position: relative;
+  margin-right: 8px;
+}
+#movieWatchedList .movie-poster::after {
+  content: "";
+  position: absolute;
+  top: -16px;
+  bottom: -16px;
+  right: -12px;
+  border-right: 2px dashed var(--sage-dim);
+}
+
+/* --- spin the reel --- */
+#movieSubtabs {
+  align-items: center;
+}
+.movie-reel-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: var(--body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--green-deep);
+  background: transparent;
+  border: 1px solid var(--sage);
+  border-radius: 999px;
+  padding: 7px 15px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+.movie-reel-btn:hover {
+  background: var(--sage-dim);
+}
+.movie-reel-btn:active {
+  transform: scale(0.96);
+}
+.movie-reel-btn .reel {
+  display: inline-block;
+  margin-right: 6px;
+}
+.movie-reel-btn.spinning .reel {
+  animation: reelSpin 0.6s linear 2;
+}
+@keyframes reelSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.movie-card.is-picked {
+  animation: pickedGlow 2.4s ease;
+}
+@keyframes pickedGlow {
+  0%,
+  100% {
+    box-shadow: var(--shadow-tiny);
+  }
+  15%,
+  70% {
+    box-shadow:
+      0 0 0 2px var(--gold),
+      0 12px 32px -10px rgba(201, 166, 107, 0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bucket-item:hover,
+  .movie-card:hover {
+    transform: none;
+  }
+  .bucket-sky-thread,
+  .bucket-star {
+    transition: none;
+  }
+  .movie-reel-btn.spinning .reel,
+  .movie-card.is-picked {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   SECTION 3 — SIGNATURE MOTION
+   ------------------------------------------------------------
+   A richer entrance for the hero (one-time, on load), the Today
+   widget (each time it's opened), and the static/"hardcoded"
+   pages — Our Story, Us, Open When — where content is fixed and
+   scrolling through it should feel like it's coming into focus
+   rather than just sliding up.
+   ============================================================ */
+
+/* ---- hero: staggered, one-time entrance on page load ---- */
+.hero .container > *:not(.hero-photo-wrap) {
+  opacity: 0;
+  animation: heroTextIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hero .container > *:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.hero .container > *:nth-child(3) {
+  animation-delay: 0.32s;
+}
+.hero .container > *:nth-child(4) {
+  animation-delay: 0.48s;
+}
+.hero .container > *:nth-child(5) {
+  animation-delay: 0.64s;
+}
+.hero .container > *:nth-child(6) {
+  animation-delay: 0.8s;
+}
+@keyframes heroTextIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+/* The photo gets its own quieter fade — no transform, since the
+   existing cursor-glow parallax already sets its own transform
+   on scroll and the two shouldn't fight over the same property. */
+.hero-photo-wrap {
+  opacity: 0;
+  animation: heroPhotoIn 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes heroPhotoIn {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* ---- static pages: content comes into focus as you scroll ----
+   Scoped to Our Story / Us / Open When only — the rest of the
+   site (bucket list, movies, quizzes…) keeps the original flat
+   fade from style.css so the new scroll panes and grids there
+   aren't fighting a second motion system. */
+#tab-story .reveal-on-scroll,
+#tab-us .reveal-on-scroll,
+#tab-openwhen .reveal-on-scroll {
+  opacity: 1;
+  transform: none;
+}
+#tab-story .reveal-on-scroll .container > *,
+#tab-us .reveal-on-scroll .container > *,
+#tab-openwhen .reveal-on-scroll .container > * {
+  opacity: 0;
+  transform: translateY(26px) scale(0.985);
+  filter: blur(5px);
+  transition:
+    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.85s ease;
+}
+#tab-story .reveal-on-scroll.is-visible .container > *,
+#tab-us .reveal-on-scroll.is-visible .container > *,
+#tab-openwhen .reveal-on-scroll.is-visible .container > * {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+#tab-story .reveal-on-scroll .container > *:nth-child(2),
+#tab-us .reveal-on-scroll .container > *:nth-child(2),
+#tab-openwhen .reveal-on-scroll .container > *:nth-child(2) {
+  transition-delay: 0.11s;
+}
+#tab-story .reveal-on-scroll .container > *:nth-child(3),
+#tab-us .reveal-on-scroll .container > *:nth-child(3),
+#tab-openwhen .reveal-on-scroll .container > *:nth-child(3) {
+  transition-delay: 0.21s;
+}
+#tab-story .reveal-on-scroll .container > *:nth-child(n + 4),
+#tab-us .reveal-on-scroll .container > *:nth-child(n + 4),
+#tab-openwhen .reveal-on-scroll .container > *:nth-child(n + 4) {
+  transition-delay: 0.3s;
+}
+
+/* ---- Today widget: an actual opening moment, not just a
+   height/hidden toggle. Triggered by adding .tp-opening the
+   instant the panel is un-hidden (see enhancements.js) so it
+   replays cleanly every time it's opened. ---- */
+.today-panel.tp-opening {
+  position: relative;
+  overflow: hidden;
+  animation: todayPanelIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes todayPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+/* A single light sheen sweeps across the panel once as it opens. */
+.today-panel.tp-opening::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  animation: todaySheen 0.9s ease 0.15s both;
+}
+html[data-theme="dark"] .today-panel.tp-opening::before {
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.14) 50%,
+    transparent 70%
+  );
+}
+@keyframes todaySheen {
+  to {
+    transform: translateX(120%);
+  }
+}
+.today-panel.tp-opening .today-grid > * {
+  opacity: 0;
+  animation: staggerRevealIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.today-panel.tp-opening .today-grid > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.today-panel.tp-opening .today-grid > *:nth-child(2) {
+  animation-delay: 0.17s;
+}
+.today-panel.tp-opening .today-grid > *:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.today-panel.tp-opening .today-grid > *:nth-child(4) {
+  animation-delay: 0.31s;
+}
+.today-panel.tp-opening .today-grid > *:nth-child(5) {
+  animation-delay: 0.38s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero .container > *:not(.hero-photo-wrap),
+  .hero-photo-wrap,
+  #tab-story .reveal-on-scroll .container > *,
+  #tab-us .reveal-on-scroll .container > *,
+  #tab-openwhen .reveal-on-scroll .container > *,
+  .today-panel.tp-opening,
+  .today-panel.tp-opening::before,
+  .today-panel.tp-opening .today-grid > * {
+    animation: none;
+    transition: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* ============================================================
+   SECTION 5 — COLLAPSIBLE ADD FORMS
+   ------------------------------------------------------------
+   The "Add a song / Add to the calendar / Add a photo / New
+   album" forms stay tucked away behind a small toggle button
+   until wanted, instead of always sitting open on the page.
+   Paired with enhancements.js SECTION 5.
+
+   Base rule targets the forms by ID (higher specificity than
+   the shared .music-add-form class, and loaded in <head> so
+   there's no flash of the open form before JS runs). The
+   margin/padding !important pairs only override the inline
+   `style="margin:..."` a couple of these forms carry in
+   index.html — nothing else here needs it.
+   ============================================================ */
+
+#musicAddForm,
+#calAddForm,
+#memoryUploadForm,
+#albumCreateForm {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0 !important;
+  margin-bottom: 8px !important;
+  border-color: transparent;
+  box-shadow: none;
+  transition:
+    max-height 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.3s ease,
+    padding-top 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    padding-bottom 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    margin-top 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    margin-bottom 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.3s ease;
+}
+#musicAddForm.add-form-open,
+#calAddForm.add-form-open,
+#memoryUploadForm.add-form-open,
+#albumCreateForm.add-form-open {
+  opacity: 1;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  margin-top: 20px !important;
+  margin-bottom: 8px !important;
+  border-color: rgba(43, 38, 34, 0.05);
+  box-shadow: var(--shadow-tiny);
+}
+
+.add-form-toggle {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  font-family: var(--body);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--green-deep);
+  background: var(--sage-dim);
+  border: 1px dashed var(--sage);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+.add-form-toggle:hover {
+  background: var(--sage);
+  border-style: solid;
+}
+.add-form-toggle:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.add-form-toggle.is-open {
+  color: var(--ink-soft);
+  background: transparent;
+  border-style: solid;
+}
+
+html[data-theme="dark"] .add-form-toggle {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--gold, #cbb994);
+}
+html[data-theme="dark"] .add-form-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* The "+ Add a song ♥" toggle lands right after the playlist
+   description (#musicNote) with no gap of its own — .add-form-toggle's
+   margin is 0 on all sides, so the two sat edge-to-edge. Only the
+   music one gets extra breathing room here, since that's the pairing
+   that reads as cramped; the other three forms (calendar, photo
+   upload, new album) are unaffected. */
+#musicNote + .add-form-toggle {
+  margin-top: 26px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #musicAddForm,
+  #calAddForm,
+  #memoryUploadForm,
+  #albumCreateForm {
+    transition: none;
+  }
+}
+
+
+/* ============================================================
+   SECTION 4 — PHOTO BOOTH POLISH
+   ------------------------------------------------------------
+   Cosmetic only: shadows, depth, hover states, and a couple of
+   entrance animations that ride on the [hidden] toggles app.js
+   already does. Nothing here adds, removes, or renames an element
+   app.js looks up, and nothing changes when/why a panel shows or
+   hides — nothing about the booth's behavior — only what it looks
+   like. Every other page already got this pass; this brings the
+   booth in line with it.
+   ============================================================ */
+
+/* ---- panels: give them the same depth as cards elsewhere ---- */
+.pb-panel {
+  box-shadow: var(--shadow-tiny);
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+/* Panels toggle via the [hidden] attribute, which removes them from
+   the render tree — so re-showing one re-triggers this entrance
+   animation for free, no JS involved. */
+.pb-panel:not([hidden]) {
+  animation: pbPanelIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+@keyframes pbPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- the two room-choice cards: same hover-lift language as
+   the bucket list / movie cards ---- */
+.pb-room-option {
+  border-radius: 16px;
+  transition:
+    box-shadow 0.28s ease,
+    transform 0.28s ease,
+    background 0.25s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pb-room-option:hover {
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.5);
+  }
+  html[data-theme="dark"] .pb-room-option:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+.pb-room-icon {
+  box-shadow: var(--shadow-tiny);
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease;
+}
+.pb-room-option:hover .pb-room-icon {
+  transform: scale(1.08) rotate(-4deg);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---- booth code: reads like a ticket stub, not a form field ---- */
+.pb-room-code {
+  position: relative;
+  box-shadow: var(--shadow-tiny);
+  background: linear-gradient(150deg, var(--cream), var(--sage-dim));
+  animation: pbCodeIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+@keyframes pbCodeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+html[data-theme="dark"] .pb-room-code {
+  background: linear-gradient(150deg, var(--night), rgba(255, 255, 255, 0.04));
+}
+
+/* ---- live video stage: a soft frame instead of a flat box ---- */
+.pb-video-box {
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.pb-video-box::after {
+  /* A faint inner vignette — mimics the glass of a real camera
+     lens/viewfinder instead of a plain cropped rectangle. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
+}
+.pb-video-label {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ---- countdown: a steady pulse instead of a flat static number.
+   The 1s loop isn't hand-synced to the ticking JS, but since the
+   number only ever changes once per second, in practice it lands
+   close enough to read as intentional rather than coincidental. ---- */
+.pb-countdown-overlay span {
+  display: inline-block;
+  animation: pbCountdownPulse 1s ease-in-out infinite;
+}
+@keyframes pbCountdownPulse {
+  0% {
+    transform: scale(1);
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+  }
+  30% {
+    transform: scale(1.18);
+    text-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.55),
+      0 0 30px rgba(255, 255, 255, 0.5);
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* ---- shot thumbnails: pop in as they're taken, lift on hover ---- */
+.pb-thumbs-row img {
+  box-shadow: var(--shadow-tiny);
+  animation: pbThumbIn 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+@keyframes pbThumbIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .pb-thumbs-row img:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: var(--shadow-soft);
+  }
+}
+
+/* ---- strip preview + theme swatches ---- */
+.pb-strip-canvas-wrap {
+  box-shadow: var(--shadow-lift);
+}
+.pb-theme-swatch {
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+.pb-theme-swatch:hover {
+  transform: scale(1.06);
+  box-shadow: var(--shadow-soft);
+}
+.pb-theme-swatch.active {
+  box-shadow:
+    0 0 0 3px var(--cream),
+    0 0 0 5px var(--blush),
+    var(--shadow-tiny);
+}
+
+/* ---- buttons: the same lift the rest of the site's outline
+   buttons already have ---- */
+.pb-btn-outline {
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pb-btn-outline:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-tiny);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-panel:not([hidden]),
+  .pb-room-code,
+  .pb-countdown-overlay span,
+  .pb-thumbs-row img {
+    animation: none;
+  }
+  .pb-panel,
+  .pb-room-option,
+  .pb-room-icon,
+  .pb-thumbs-row img,
+  .pb-theme-swatch,
+  .pb-btn-outline {
+    transition: none;
+  }
+  .pb-room-option:hover,
+  .pb-room-option:hover .pb-room-icon,
+  .pb-thumbs-row img:hover,
+  .pb-theme-swatch:hover,
+  .pb-btn-outline:hover {
+    transform: none;
+  }
+}

@@ -1,0 +1,11 @@
+# Cloudflare Workers config
+# Install: npm i -g wrangler
+# Login:   wrangler login
+# Deploy:  wrangler deploy
+
+name = "couple-news"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Optional: custom route later
+# routes = [{ pattern = "news.yourdomain.com/*", zone_name = "yourdomain.com" }]

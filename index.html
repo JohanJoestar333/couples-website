@@ -1,0 +1,2062 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>For You</title>
+    <meta
+      name="description"
+      content="A private little place for two: memories, music, movies and more."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="For You" />
+    <meta
+      property="og:description"
+      content="A private little place for two: memories, music, movies and more."
+    />
+    <meta name="twitter:card" content="summary" />
+    <!-- Link preview image: once you know your site's address, add
+         <meta property="og:image" content="https://YOUR-SITE/assets/photos/demo/hero.jpg" />
+         (it must be a full https:// address for chat apps to show it). -->
+    <!-- Apply theme before paint to avoid a white flash on load -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("gfTheme");
+          if (
+            t === "dark" ||
+            (t !== "light" &&
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches)
+          ) {
+            document.documentElement.setAttribute("data-theme", "dark");
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="icon" type="image/jpeg" href="assets/photos/icon.jpeg" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+    <meta name="theme-color" content="#f2f6f3" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="For You" />
+    <!-- Fonts are local: SF Pro on Apple devices, each device's own system font elsewhere. No external font host. -->
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/enhancements.css" />
+    <link rel="stylesheet" href="css/photobooth-studio.css" />
+    <link rel="stylesheet" href="css/modern.css" />
+    <!-- Firebase — only used for the Bucket List's cross-device sync.
+     Nothing loads or runs unless CONFIG.firebase below is filled in. -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  </head>
+  <body>
+    <div id="particles"></div>
+    <div class="grain-overlay" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <div class="nav-inner">
+        <button type="button" class="brand" aria-label="us">
+          us
+        </button>
+        <nav class="tabs" id="tabsNav">
+          <span class="tab-indicator" id="tabIndicator" aria-hidden="true"></span>
+          <button class="tab-btn active" data-tab="story">Our Story</button>
+          <button class="tab-btn" data-tab="album">
+            Our Album<span class="tab-dot" data-dot-for="album" hidden></span>
+          </button>
+          <button class="tab-btn" data-tab="us">Us</button>
+          <button class="tab-btn" data-tab="openwhen">Open When...</button>
+          <button class="tab-btn" data-tab="bucketlist">
+            Bucket List<span
+              class="tab-dot"
+              data-dot-for="bucketlist"
+              hidden
+            ></span>
+          </button>
+          <button class="tab-btn" data-tab="quizzes">Quizzes</button>
+          <button class="tab-btn" data-tab="music">
+            Music<span class="tab-dot" data-dot-for="music" hidden></span>
+          </button>
+          <!-- Tools that would clutter the bar live under ··· (add future tabs here too) -->
+          <div class="nav-more" id="navMore">
+            <button
+              type="button"
+              class="nav-more-btn"
+              id="navMoreBtn"
+              aria-label="More"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              ···
+              <span class="tab-dot" data-dot-for="bouquet" hidden></span>
+              <span class="tab-dot" data-dot-for="photobooth" hidden></span>
+              <span class="tab-dot" data-dot-for="calendar" hidden></span>
+              <span class="tab-dot" data-dot-for="daycards" hidden></span>
+              <span class="tab-dot" data-dot-for="games" hidden></span>
+            </button>
+            <div class="nav-more-menu" id="navMoreMenu" role="menu">
+              <div class="nav-more-label">More</div>
+              <button class="tab-btn" data-tab="bouquet" role="menuitem">
+                Bouquet<span
+                  class="tab-dot"
+                  data-dot-for="bouquet"
+                  hidden
+                ></span>
+              </button>
+              <button class="tab-btn" data-tab="photobooth" role="menuitem">
+                Photo Booth<span
+                  class="tab-dot"
+                  data-dot-for="photobooth"
+                  hidden
+                ></span>
+              </button>
+              <button class="tab-btn" data-tab="calendar" role="menuitem">
+                Calendar<span
+                  class="tab-dot"
+                  data-dot-for="calendar"
+                  hidden
+                ></span>
+              </button>
+              <button class="tab-btn" data-tab="daycards" role="menuitem">
+                Day Cards<span
+                  class="tab-dot"
+                  data-dot-for="daycards"
+                  hidden
+                ></span>
+              </button>
+              <button class="tab-btn" data-tab="games" role="menuitem">
+                Our Games
+              </button>
+            </div>
+          </div>
+        </nav>
+        <div class="nav-actions">
+        <button
+          type="button"
+          class="theme-btn"
+          id="themeToggle"
+          aria-label="Toggle dark mode"
+          title="Dark mode"
+        >
+          🌙
+        </button>
+        <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      
+        </div>
+      </div>
+      <div class="mobile-menu" id="mobileMenu">
+        <button
+          type="button"
+          class="theme-btn"
+          id="themeToggleMobile"
+          aria-label="Toggle dark mode"
+          title="Dark mode"
+          style="margin: 8px 0 4px"
+        >
+          🌙
+        </button>
+        <button class="tab-btn active" data-tab="story">Our Story</button>
+        <button class="tab-btn" data-tab="album">
+          Our Album<span class="tab-dot" data-dot-for="album" hidden></span>
+        </button>
+        <button class="tab-btn" data-tab="us">Us</button>
+        <button class="tab-btn" data-tab="openwhen">Open When...</button>
+        <button class="tab-btn" data-tab="bucketlist">
+          Bucket List<span
+            class="tab-dot"
+            data-dot-for="bucketlist"
+            hidden
+          ></span>
+        </button>
+        <button class="tab-btn" data-tab="quizzes">Quizzes</button>
+        <button class="tab-btn" data-tab="music">
+          Music<span class="tab-dot" data-dot-for="music" hidden></span>
+        </button>
+        <div class="mobile-more-label">More</div>
+        <button class="tab-btn" data-tab="bouquet">
+          Bouquet<span class="tab-dot" data-dot-for="bouquet" hidden></span>
+        </button>
+        <button class="tab-btn" data-tab="photobooth">
+          Photo Booth<span
+            class="tab-dot"
+            data-dot-for="photobooth"
+            hidden
+          ></span>
+        </button>
+        <button class="tab-btn" data-tab="calendar">
+          Calendar<span class="tab-dot" data-dot-for="calendar" hidden></span>
+        </button>
+        <button class="tab-btn" data-tab="daycards">
+          Day Cards<span class="tab-dot" data-dot-for="daycards" hidden></span>
+        </button>
+        <button class="tab-btn" data-tab="games">Our Games</button>
+      </div>
+    </header>
+
+    <!-- ============================= TAB 1: OUR STORY ============================= -->
+    <div class="tab-panel active" id="tab-story">
+      <section class="hero">
+        <div class="container">
+          <div class="hero-photo-wrap" id="heroPhotoWrap">
+            <div class="hero-glow cursor-glow" id="heroGlow"></div>
+            <div class="photo-placeholder" id="heroPhoto">
+              replace with<br />your favorite<br />photo of you two<br /><small
+                >(edit CONFIG.photos.hero)</small
+              >
+            </div>
+          </div>
+          <p class="eyebrow" id="heroEyebrow"></p>
+          <h1 id="heroTitle" class="script"></h1>
+          <p class="sub" id="heroSubtitle"></p>
+          <p class="msg" id="heroMessage"></p>
+          <a href="#counterSection" class="btn">Explore Our Story ♥</a>
+        </div>
+      </section>
+
+      <!-- ========== TODAY WIDGET (collapsed until opened) ========== -->
+      <section class="section-narrow" id="todayWidget">
+        <div class="container">
+          <button
+            type="button"
+            class="today-toggle"
+            id="todayToggle"
+            aria-expanded="false"
+            aria-controls="todayPanel"
+          >
+            <span class="today-toggle-left">
+              <span class="eyebrow">Right now</span>
+              <span class="today-toggle-title">Today</span>
+              <span class="today-toggle-hint" id="todayToggleHint"
+                >Tap to open</span
+              >
+            </span>
+            <span class="today-toggle-chevron" aria-hidden="true">▾</span>
+          </button>
+
+          <div class="today-panel" id="todayPanel" hidden>
+            <p class="today-panel-intro">
+              A little snapshot of us — news, a daily quote, mood, plans &amp; notes.
+            </p>
+            <div class="today-grid" id="todayGrid">
+              <div class="today-card today-moods">
+                <div class="today-card-label">Our mood</div>
+                <div class="today-mood-row">
+                  <div class="today-mood-person" data-who="partnerA">
+                    <div class="today-mood-name" id="todayMoodAName">Partner A</div>
+                    <div class="today-mood-emoji" id="todayMoodAEmoji">—</div>
+                    <div
+                      class="today-mood-meaning"
+                      id="todayMoodAMeaning"
+                    ></div>
+                    <div class="today-mood-pick" id="todayMoodAPick"></div>
+                  </div>
+                  <div class="today-mood-person" data-who="partnerB">
+                    <div class="today-mood-name" id="todayMoodBName">Partner B</div>
+                    <div class="today-mood-emoji" id="todayMoodBEmoji">—</div>
+                    <div
+                      class="today-mood-meaning"
+                      id="todayMoodBMeaning"
+                    ></div>
+                    <div class="today-mood-pick" id="todayMoodBPick"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="today-card today-bouquet">
+                <div class="today-card-label">This week's bouquet</div>
+                <div id="todayBouquetBody" class="today-bouquet-body">
+                  <p class="today-empty">Loading…</p>
+                </div>
+              </div>
+
+              <div class="today-card today-cal">
+                <div class="today-card-label">On the calendar</div>
+                <div id="todayCalList" class="today-cal-list">
+                  <p class="today-empty">Loading…</p>
+                </div>
+              </div>
+
+              <div class="today-card today-weather">
+                <div class="today-card-label">Weather</div>
+                <div class="today-weather-mini">
+                  <div class="today-weather-mini-row" id="todayWeatherA">
+                    <span class="today-weather-mini-name">—</span>
+                  </div>
+                  <div class="today-weather-mini-row" id="todayWeatherB">
+                    <span class="today-weather-mini-name">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="today-card today-note">
+                <div class="today-card-label">Latest day card</div>
+                <div id="todayDaycard" class="today-daycard-body">
+                  <p class="today-empty">Loading…</p>
+                </div>
+              </div>
+
+              <div class="today-quote-photo-stack">
+                <div class="today-card today-quote-card">
+                  <div class="today-card-label" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                    <span>Quote of the day</span>
+                    <button type="button" id="todayQuoteRefresh" class="today-quote-refresh" title="Refresh quote">↻</button>
+                  </div>
+                  <div id="todayQuoteBody" class="today-quote-body">
+                    <p class="today-empty">Loading quote…</p>
+                  </div>
+                  <div id="todayQuoteAuthor" class="today-quote-author"></div>
+                  <p id="todayQuoteSource" class="today-quote-source"></p>
+                </div>
+
+                <div class="today-card today-onthisday" id="todayOnThisDayCard" hidden>
+                  <div class="today-card-label">On this day</div>
+                  <div id="todayOnThisDayList"></div>
+                </div>
+              </div>
+
+              <div class="today-card today-news">
+                <div class="today-card-label">World news today</div>
+                <div id="todayNewsList" class="today-news-list">
+                  <p class="today-empty">Loading headlines…</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-narrow" id="counterSection">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Together, in numbers</p>
+            <h2>How Long We've Been Us</h2>
+          </div>
+          <div class="glass-card">
+            <div class="count-grid" id="togetherCounter">
+              <div class="count-unit">
+                <div class="num" id="c-years">0</div>
+                <div class="lbl">Years</div>
+              </div>
+              <div class="count-unit">
+                <div class="num" id="c-months">0</div>
+                <div class="lbl">Months</div>
+              </div>
+              <div class="count-unit">
+                <div class="num" id="c-days">0</div>
+                <div class="lbl">Days</div>
+              </div>
+              <div class="count-unit">
+                <div class="num" id="c-hours">0</div>
+                <div class="lbl">Hours</div>
+              </div>
+              <div class="count-unit">
+                <div class="num" id="c-mins">0</div>
+                <div class="lbl">Minutes</div>
+              </div>
+              <div class="count-unit">
+                <div class="num" id="c-secs">0</div>
+                <div class="lbl">Seconds</div>
+              </div>
+            </div>
+            <p class="center-note">
+              And somehow, every day with you still feels like something I want
+              more of.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-narrow">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">The wait is almost over</p>
+            <h2>Until I See You Again</h2>
+          </div>
+          <div class="glass-card" id="countdownCard">
+            <div class="count-grid four" id="reunionCountdown">
+              <div class="count-unit">
+                <div class="num" id="r-days">0</div>
+                <div class="lbl">Days</div>
+              </div>
+              <div class="count-unit">
+                <div class="num" id="r-hours">0</div>
+                <div class="lbl">Hours</div>
+              </div>
+              <div class="count-unit">
+                <div class="num" id="r-mins">0</div>
+                <div class="lbl">Minutes</div>
+              </div>
+              <div class="count-unit">
+                <div class="num" id="r-secs">0</div>
+                <div class="lbl">Seconds</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-narrow">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">For now, though</p>
+            <h2>Where We Are</h2>
+          </div>
+          <div class="distance-row">
+            <div class="city-pill" id="myCityPill"></div>
+            <div class="dotted-line" id="dottedLine"></div>
+            <div class="city-pill" id="herCityPill"></div>
+          </div>
+          <p class="distance-value" id="distanceValue"></p>
+          <p class="center-note" id="distanceNote">
+            Different places. Same moon. Same love. Just counting the days until
+            we're together again.
+          </p>
+        </div>
+      </section>
+
+      <section class="section-narrow">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Right now</p>
+            <h2>What the Sky Looks Like Where We Are</h2>
+          </div>
+          <div class="weather-grid" id="weatherGrid">
+            <div class="weather-card" id="partnerAWeather">
+              <p style="font-size: 0.85rem; opacity: 0.7">loading sky...</p>
+            </div>
+            <div class="weather-card" id="partnerBWeather">
+              <p style="font-size: 0.85rem; opacity: 0.7">loading sky...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-narrow">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Look up</p>
+            <h2>The Same Moon</h2>
+          </div>
+          <div class="moon-card" id="moonCard">
+            <div class="moon-visual" id="moonVisual">
+              <div class="moon-shadow" id="moonShadow"></div>
+            </div>
+            <h3 id="moonPhaseName">—</h3>
+            <div class="moon-pct" id="moonPct"></div>
+            <p class="moon-note">
+              No matter how far apart we are, there's something comforting about
+              knowing we're still under the same moon.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-narrow">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Small things, mostly</p>
+            <h2>Things I Miss About You</h2>
+            <p>
+              There are so many little things I miss. Some are big. Most are
+              actually incredibly simple.
+            </p>
+          </div>
+          <div class="card-grid" id="missGrid"></div>
+        </div>
+      </section>
+
+      <section class="section-narrow">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">The real reason</p>
+            <h2>You Made Me Better</h2>
+          </div>
+          <div class="better-block" id="betterBlock"></div>
+        </div>
+      </section>
+
+      <section class="section-narrow">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Just because</p>
+            <h2>Little Things I Love About Us</h2>
+          </div>
+          <div class="little-grid" id="littleGrid"></div>
+        </div>
+      </section>
+
+      <section class="section-narrow heart-btn-wrap">
+        <button class="heart-burst-btn" id="heartBtn">Click this ♥</button>
+        <p class="heart-msg" id="heartMsg">
+          Just a little reminder that I love you. 💚
+        </p>
+      </section>
+    </div>
+
+    <!-- ============================= TAB 2: OUR ALBUM ============================= -->
+    <div class="tab-panel" id="tab-album">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">A little collection</p>
+            <h2>Our Little Collection</h2>
+            <p>Some of my favorite memories of us.</p>
+          </div>
+          <!-- Upload form: pick an album, then the photo lands in that section -->
+          <div
+            class="music-add-form"
+            id="memoryUploadForm"
+            style="max-width: 720px; margin: 0 auto 40px"
+          >
+            <h3
+              id="liveMemoriesTitle"
+              style="
+                font-family: var(--serif);
+                font-size: 1.15rem;
+                color: var(--green-deep);
+                margin-bottom: 6px;
+              "
+            >
+              Add a photo
+            </h3>
+            <p
+              id="liveMemoriesSubtitle"
+              style="
+                font-size: 0.88rem;
+                color: var(--ink-soft);
+                margin-bottom: 14px;
+              "
+            >
+              Choose which album it belongs to.
+            </p>
+            <span
+              class="bucket-sync-pill" tabindex="0"
+              id="memoriesSyncPill"
+              style="margin-bottom: 16px"
+            ></span>
+            <div class="music-add-grid">
+              <div class="music-add-field full">
+                <label id="memoryAlbumLabel">Album</label>
+                <select id="memoryAlbumSelect"></select>
+              </div>
+              <div class="music-add-field full">
+                <label id="memoryPhotoLabel">Choose a photo</label>
+                <input
+                  type="file"
+                  id="memoryPhotoInput"
+                  accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic,.heif"
+                />
+              </div>
+              <div class="music-add-field full">
+                <label id="memoryCaptionLabel">Caption</label>
+                <input type="text" id="memoryCaptionInput" maxlength="120" />
+              </div>
+              <div class="music-add-field">
+                <label id="memoryDateLabel">Date (optional)</label>
+                <input type="date" id="memoryDateInput" />
+              </div>
+            </div>
+            <div class="music-add-actions">
+              <span
+                id="memoryUploadStatus"
+                style="
+                  font-size: 0.85rem;
+                  color: var(--ink-soft);
+                  align-self: center;
+                "
+              ></span>
+              <button
+                type="button"
+                class="btn outline"
+                id="memoryCancelEditBtn"
+                style="display: none"
+              >
+                Cancel
+              </button>
+              <button type="button" class="btn" id="memoryUploadBtn">
+                Add Memory
+              </button>
+            </div>
+          </div>
+
+          <!-- Create a new album (synced via Firebase collection "albums") -->
+          <div
+            class="music-add-form"
+            id="albumCreateForm"
+            style="max-width: 560px; margin: 0 auto 36px"
+          >
+            <h3
+              style="
+                font-family: var(--serif);
+                font-size: 1.1rem;
+                color: var(--green-deep);
+                margin-bottom: 10px;
+              "
+            >
+              New album
+            </h3>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--ink-soft);
+                margin-bottom: 12px;
+              "
+            >
+              Create a folder for new memories — it appears in the list above
+              when you upload.
+            </p>
+            <div class="music-add-grid">
+              <div class="music-add-field" style="grid-column: 1 / -1">
+                <label for="newAlbumNameInput">Album name</label>
+                <input
+                  type="text"
+                  id="newAlbumNameInput"
+                  maxlength="60"
+                  placeholder="e.g. Trip to the beach"
+                />
+              </div>
+            </div>
+            <div class="music-add-actions">
+              <span
+                id="newAlbumStatus"
+                style="
+                  font-size: 0.85rem;
+                  color: var(--ink-soft);
+                  align-self: center;
+                "
+              ></span>
+              <button type="button" class="btn" id="newAlbumBtn">
+                Add album
+              </button>
+            </div>
+          </div>
+
+          <!-- Static CONFIG albums + custom albums + live uploads -->
+          <div id="albumWrap"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= TAB 3: US ============================= -->
+    <div class="tab-panel" id="tab-us">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">According to us</p>
+            <h2>Us, According to Us</h2>
+          </div>
+
+          <h3
+            style="
+              text-align: center;
+              margin-bottom: 18px;
+              color: var(--green-deep);
+            "
+          >
+            Our Favorites
+          </h3>
+          <div class="fav-grid" id="favGrid" style="margin-bottom: 64px"></div>
+
+          <h3
+            style="
+              text-align: center;
+              margin-bottom: 18px;
+              color: var(--green-deep);
+            "
+          >
+            Fun Facts About Us
+          </h3>
+          <div
+            class="fact-grid"
+            id="factGrid"
+            style="margin-bottom: 64px"
+          ></div>
+
+          <h3
+            style="
+              text-align: center;
+              margin-bottom: 26px;
+              color: var(--green-deep);
+            "
+          >
+            Our Firsts
+          </h3>
+          <div class="timeline" id="timelineWrap"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= TAB 4: OPEN WHEN ============================= -->
+    <div class="tab-panel" id="tab-openwhen">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">For when I can't be there</p>
+            <h2>Open When You Need Me</h2>
+            <p>
+              For the moments when I can't physically be there, but I still want
+              to be there for you.
+            </p>
+          </div>
+          <div class="ow-grid" id="owGrid"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= TAB 5: BUCKET LIST ============================= -->
+    <div class="tab-panel" id="tab-bucketlist">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Everything we still want to do</p>
+            <h2>Our Bucket List</h2>
+          </div>
+          <p class="bucket-intro">
+            A running list of the places we want to see, the things we want to
+            try, and the little (and big) adventures we're saving for each
+            other.
+          </p>
+          <span class="bucket-sync-pill" tabindex="0" id="bucketSyncPill"></span>
+
+          <div
+            class="bucket-progress"
+            id="bucketProgress"
+            style="display: none"
+          >
+            <div class="bucket-progress-bar">
+              <div class="bucket-progress-fill" id="bucketProgressFill"></div>
+            </div>
+            <p class="bucket-progress-label" id="bucketProgressLabel"></p>
+          </div>
+
+          <div class="bucket-add-row">
+            <input
+              type="text"
+              class="bucket-input"
+              id="bucketNewInput"
+              placeholder="Add something to the list..."
+              maxlength="140"
+            />
+            <button class="bucket-add-btn" id="bucketAddBtn">Add</button>
+          </div>
+
+          <div class="bucket-list" id="bucketList"></div>
+
+          <!-- ---- Movies sub-section (watchlist + watched, TMDB search) ---- -->
+          <div class="movies-section">
+            <div class="section-head movies-section-head">
+              <p class="eyebrow">What we're watching together</p>
+              <h2>Movie Nights</h2>
+            </div>
+
+            <!-- ====== QUICK LINKS: replace the placeholder URL below ====== -->
+            <div class="movie-night-links">
+              <div class="movie-link-group movie-link-wiki">
+                <h3>Streaming Website Wiki</h3>
+                <p>Use this wiki to find more websites for streaming movies and live sports.</p>
+                <!-- Replace this href with your streaming wiki link -->
+                <a class="btn movie-link-btn" href="https://www.reddit.com/r/Piracy/wiki/megathread/" target="_blank" rel="noopener noreferrer">Open Streaming Wiki</a>
+              </div>
+            </div>
+
+            <p class="bucket-intro">Search for a movie to add it to our watchlist, then move it over and rate it together once we've actually watched it.</p>
+            <span class="bucket-sync-pill" tabindex="0" id="moviesSyncPill"></span>
+
+            <div class="movie-search-row">
+              <input
+                type="text"
+                class="bucket-input"
+                id="movieSearchInput"
+                placeholder="Search for a movie..."
+                maxlength="140"
+              />
+              <button class="bucket-add-btn" id="movieSearchBtn">
+                Search
+              </button>
+            </div>
+            <div
+              class="movie-search-results"
+              id="movieSearchResults"
+              hidden
+            ></div>
+
+            <div class="movie-subtabs" id="movieSubtabs">
+              <button
+                type="button"
+                class="movie-subtab-btn active"
+                data-movie-tab="towatch"
+              >
+                To Watch <span class="movie-count" id="movieToWatchCount"></span>
+              </button>
+              <button
+                type="button"
+                class="movie-subtab-btn"
+                data-movie-tab="watched"
+              >
+                Watched <span class="movie-count" id="movieWatchedCount"></span>
+              </button>
+            </div>
+
+            <div class="movie-list" id="movieToWatchList"></div>
+            <div class="movie-list" id="movieWatchedList" hidden></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= TAB: BOUQUET ============================= -->
+    <div class="tab-panel" id="tab-bouquet">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Fresh for a week</p>
+            <h2>Bouquet</h2>
+            <p>
+              A little bouquet just for you. Arrange as many blooms as you
+              like on the page — it stays fresh for a week, then it wilts
+              away, or gets replaced the moment you make a new one.
+            </p>
+          </div>
+          <span
+            class="bucket-sync-pill"
+            tabindex="0"
+            id="bouquetSyncPill"
+          ></span>
+
+          <div class="bouquet-current" id="bouquetCurrent">
+            <canvas
+              class="bouquet-current-stage"
+              id="bouquetCurrentStage"
+              width="600"
+              height="720"
+            ></canvas>
+            <div class="bouquet-meta">
+              <span class="daycard-from" id="bouquetCurrentFrom"></span>
+              <span class="bouquet-badge" id="bouquetCountdown"></span>
+            </div>
+            <p class="bouquet-note" id="bouquetCurrentNote" hidden></p>
+            <div class="bouquet-actions">
+              <button type="button" class="btn outline" id="bouquetSaveBgBtn">
+                Save with page
+              </button>
+              <button type="button" class="btn outline" id="bouquetSaveNoBgBtn">
+                Save, no background
+              </button>
+              <button
+                type="button"
+                class="danger"
+                id="bouquetDeleteBtn"
+                hidden
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <p class="bouquet-empty" id="bouquetEmpty" hidden>
+            No bouquet yet — build one below 💐
+          </p>
+
+          <button
+            type="button"
+            class="today-toggle"
+            id="bouquetBuildToggle"
+            aria-expanded="false"
+            aria-controls="bouquetForm"
+            style="margin-top: 18px"
+          >
+            <span class="today-toggle-left">
+              <span class="eyebrow">Arrange it yourself</span>
+              <span class="today-toggle-title">Build a bouquet</span>
+              <span class="today-toggle-hint" id="bouquetBuildHint"
+                >Tap to open</span
+              >
+            </span>
+            <span class="today-toggle-chevron" aria-hidden="true">▾</span>
+          </button>
+
+          <form class="bouquet-form" id="bouquetForm" hidden>
+            <label class="bouquet-form-label">Choose one wrap</label>
+            <div class="bouquet-wrap-swatches" id="bouquetWrapSwatches"></div>
+
+            <label class="bouquet-form-label"
+              >Tap a flower to add it, then drag it into place</label
+            >
+            <div class="bouquet-stage-wrap">
+              <canvas
+                class="bouquet-stage"
+                id="bouquetStage"
+                width="600"
+                height="720"
+              ></canvas>
+              <div class="bouquet-item-toolbar" id="bouquetItemToolbar" hidden>
+                <button type="button" id="bouquetSmallerBtn" title="Smaller">
+                  −
+                </button>
+                <button type="button" id="bouquetBiggerBtn" title="Bigger">
+                  +
+                </button>
+                <button
+                  type="button"
+                  id="bouquetRotLeftBtn"
+                  title="Rotate left"
+                >
+                  ↺
+                </button>
+                <button
+                  type="button"
+                  id="bouquetRotRightBtn"
+                  title="Rotate right"
+                >
+                  ↻
+                </button>
+                <button
+                  type="button"
+                  id="bouquetToBackBtn"
+                  title="Send to back"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  id="bouquetToFrontBtn"
+                  title="Bring to front"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  id="bouquetBehindWrapBtn"
+                  title="Tuck behind wrap"
+                >
+                  ⧉
+                </button>
+                <button
+                  type="button"
+                  id="bouquetRemoveBtn"
+                  class="bouquet-item-remove"
+                  title="Remove"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div class="bouquet-palette" id="bouquetPalette"></div>
+            <div class="bouquet-count-row">
+              <span id="bouquetCountLabel">0 blooms added</span>
+              <button
+                type="button"
+                class="btn outline"
+                id="bouquetClearBtn"
+              >
+                Clear
+              </button>
+            </div>
+
+            <label for="bouquetNote" class="bouquet-form-label"
+              >A little note (optional)</label
+            >
+            <textarea
+              id="bouquetNote"
+              maxlength="200"
+              placeholder="Something sweet to go with it…"
+            ></textarea>
+
+            <div class="daycard-compose-row">
+              <select id="bouquetFrom" aria-label="From">
+                <option value="partnerA" data-names="From {partnerA}">From Partner A</option>
+                <option value="partnerB" data-names="From {partnerB}">From Partner B</option>
+              </select>
+              <button type="button" class="btn" id="bouquetSendBtn">
+                Create this bouquet
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= TAB 6: QUIZZES ============================= -->
+    <div class="tab-panel" id="tab-quizzes">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Test your memory</p>
+            <h2>Quizzes</h2>
+            <p>How well do you really know us? Pick a quiz and find out.</p>
+          </div>
+
+          <div id="quizSelect" class="quiz-select-grid">
+            <div class="quiz-select-card" data-quiz="partnerA">
+              <div class="q-ic">💙</div>
+              <h3 data-names="{partnerA}'s Quiz">Partner A's Quiz</h3>
+              <p data-names="10 questions about {partnerA}">10 questions about Partner A</p>
+            </div>
+            <div class="quiz-select-card" data-quiz="partnerB">
+              <div class="q-ic">💗</div>
+              <h3 data-names="{partnerB}'s Quiz">Partner B's Quiz</h3>
+              <p data-names="10 questions about {partnerB}">10 questions about Partner B</p>
+            </div>
+            <div class="quiz-select-card" data-quiz="us">
+              <div class="q-ic">💚</div>
+              <h3>Us Together</h3>
+              <p>10 questions about us</p>
+            </div>
+          </div>
+
+          <div id="quizPlay" class="quiz-play">
+            <div class="quiz-progress-bar">
+              <div class="quiz-progress-fill" id="quizProgressFill"></div>
+            </div>
+            <div class="quiz-meta">
+              <span id="quizProgressLabel">Question 1 of 15</span>
+              <span id="quizScoreLive">Score: 0</span>
+            </div>
+            <div class="quiz-q-card" id="quizCard">
+              <div class="q-num" id="quizQNum"></div>
+              <h3 id="quizQuestion"></h3>
+              <div class="quiz-options" id="quizOptions"></div>
+              <div class="quiz-feedback" id="quizFeedback"></div>
+            </div>
+            <div class="quiz-next-row">
+              <span class="quiz-streak" id="quizStreak"></span>
+              <button class="btn" id="quizNextBtn" style="display: none">
+                Next →
+              </button>
+            </div>
+            <div style="text-align: center; margin-top: 28px">
+              <button class="btn outline quiz-back-btn" id="quizQuitBtn">
+                ← Back to quizzes
+              </button>
+            </div>
+          </div>
+
+          <div id="quizResult" class="quiz-result">
+            <div class="quiz-score-circle">
+              <div class="big" id="quizFinalScore">0</div>
+              <div class="pct" id="quizFinalPct">0%</div>
+            </div>
+            <h3 id="quizResultTitle">Results</h3>
+            <p class="review" id="quizReview"></p>
+            <button class="btn" id="quizRetryBtn">Try again</button>
+            <div style="margin-top: 12px">
+              <button class="btn outline quiz-back-btn" id="quizHomeBtn">
+                ← All quizzes
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="quiz-toast" id="quizToast"></div>
+
+    <!-- ============================= TAB 7: MUSIC ============================= -->
+    <div class="tab-panel" id="tab-music">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Press play</p>
+            <h2>Music</h2>
+            <p>
+              Songs for every mood — ours, yours, and everything in between.
+            </p>
+          </div>
+
+          <span class="music-sync-pill local" tabindex="0" id="musicSyncPill"></span>
+
+          <div class="music-copyright-banner" id="musicCopyrightBanner">
+            <div style="flex: 1">
+              <strong id="musicCopyrightTitle">Note about embeds</strong>
+              <div id="musicCopyrightText">
+                Some YouTube videos won't play here because of copyright
+                restrictions set by the artist or label. If a song fails, try
+                another upload of the same song, or use a SoundCloud link
+                instead.
+              </div>
+            </div>
+            <button
+              type="button"
+              class="banner-x"
+              id="musicCopyrightDismiss"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div class="music-playlist-nav" id="musicPlaylistNav"></div>
+
+          <div
+            class="music-player-wrap"
+            id="musicPlayerWrap"
+            style="display: none"
+          >
+            <div class="music-embed" id="musicEmbed"></div>
+            <div class="music-now">
+              <div class="music-cover" id="musicCoverArt" aria-hidden="true">
+                <div class="music-cover-disc"></div>
+              </div>
+              <div class="music-now-info">
+                <div class="now-label" id="musicNowLabel">
+                  <span class="eq-bars" aria-hidden="true"
+                    ><span></span><span></span><span></span
+                  ></span>
+                  <span id="musicNowLabelText">Now playing</span>
+                </div>
+                <div class="now-title-row">
+                  <div class="now-title" id="musicNowTitle"></div>
+                  <a
+                    class="music-yt-icon"
+                    id="musicOpenLink"
+                    href="#"
+                    target="_blank"
+                    rel="noopener"
+                    aria-label="Open on YouTube"
+                    title="YouTube"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.8 15.5v-7l6.3 3.5-6.3 3.5z"
+                      />
+                    </svg>
+                  </a>
+                </div>
+                <div class="now-artist" id="musicNowArtist"></div>
+                <div class="now-desc" id="musicNowDesc"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="music-track-list" id="musicTrackList"></div>
+          <p class="music-note" id="musicNote"></p>
+
+          <div class="music-add-form" id="musicAddForm">
+            <h3 id="musicAddHeading">Add a song</h3>
+            <div class="music-add-grid">
+              <div class="music-add-field full">
+                <label for="musicAddPlaylist">Playlist</label>
+                <select id="musicAddPlaylist"></select>
+              </div>
+              <div class="music-add-field">
+                <label for="musicAddTitleInput">Title</label>
+                <input
+                  type="text"
+                  id="musicAddTitleInput"
+                  placeholder="Song name"
+                  maxlength="120"
+                />
+              </div>
+              <div class="music-add-field">
+                <label for="musicAddArtist">Artist</label>
+                <input
+                  type="text"
+                  id="musicAddArtist"
+                  placeholder="Artist"
+                  maxlength="120"
+                />
+              </div>
+              <div class="music-add-field full">
+                <label>Source</label>
+                <div class="music-source-toggle">
+                  <label
+                    ><input
+                      type="radio"
+                      name="musicSource"
+                      value="youtube"
+                      checked
+                    />
+                    YouTube</label
+                  >
+                  <label
+                    ><input
+                      type="radio"
+                      name="musicSource"
+                      value="soundcloud"
+                    />
+                    SoundCloud</label
+                  >
+                </div>
+              </div>
+              <div class="music-add-field full" id="musicLinkFieldYt">
+                <label for="musicAddLink">YouTube link or ID</label>
+                <input
+                  type="text"
+                  id="musicAddLink"
+                  placeholder="https://youtu.be/BW9Fzwuf43c or just the ID"
+                  maxlength="200"
+                />
+              </div>
+              <div
+                class="music-add-field full"
+                id="musicLinkFieldSc"
+                style="display: none"
+              >
+                <label for="musicAddScLink">SoundCloud track link</label>
+                <input
+                  type="text"
+                  id="musicAddScLink"
+                  placeholder="https://soundcloud.com/artist/track-name"
+                  maxlength="300"
+                />
+              </div>
+              <div class="music-add-field">
+                <label for="musicAddDescEn">Description (EN)</label>
+                <textarea
+                  id="musicAddDescEn"
+                  placeholder="Why this song / when to play it"
+                  maxlength="280"
+                ></textarea>
+              </div>
+            </div>
+            <div class="music-add-actions">
+              <button
+                class="btn outline"
+                type="button"
+                id="musicCancelEditBtn"
+                style="display: none"
+              >
+                Cancel
+              </button>
+              <button class="btn" type="button" id="musicAddBtn">
+                Add song
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= TAB: PHOTO BOOTH ============================= -->
+    <div class="tab-panel" id="tab-photobooth">
+      <section class="section">
+        <div class="container pb-wrap">
+          <div class="section-head">
+            <p class="eyebrow">Just us, live</p>
+            <h2>Photo Booth</h2>
+            <p class="pb-sub" id="pbSub">
+              Both open this tab at the same time — your cameras connect live,
+              and you strike a pose together in real time, just like a real
+              photo booth.
+            </p>
+          </div>
+
+          <div class="bucket-sync-pill" tabindex="0" id="pbSyncPill">Choose how you want to use the booth</div>
+
+          <!-- ROOM ENTRY: this is deliberately shown before camera/settings -->
+          <div class="pb-panel pb-room-panel" id="pbRoomGate">
+            <div class="pb-room-choice" id="pbRoomChoice">
+              <div class="pb-room-option pb-room-card">
+                <span class="pb-room-icon">♥</span>
+                <h3>Join the same booth</h3>
+                <p>One person creates a booth code. The other enters that code to join the exact same session.</p>
+                <div class="pb-room-join-row">
+                  <input id="pbRoomCodeInput" class="pb-room-input" type="text" maxlength="6" inputmode="text" autocomplete="off" spellcheck="false" placeholder="Enter 6-character code" aria-label="Booth code">
+                  <button type="button" class="btn pb-room-join-btn" id="pbJoinRoomBtn">Join booth</button>
+                </div>
+                <p class="pb-room-error" id="pbRoomError" aria-live="polite"></p>
+              </div>
+              <div class="pb-room-divider"><span>or</span></div>
+              <div class="pb-room-option pb-room-card">
+                <span class="pb-room-icon">✦</span>
+                <h3>Start a new booth</h3>
+                <p>Create a private six-character code and send it to the other person.</p>
+                <button type="button" class="btn" id="pbCreateRoomBtn">Create a new booth</button>
+              </div>
+              <div class="pb-room-solo">
+                <span class="pb-room-icon pb-room-icon-solo">☺</span>
+                <button type="button" class="pb-btn-outline" id="pbSoloStartBtn">Use solo mode</button>
+                <span>Take the photos yourself — no partner or connection needed.</span>
+              </div>
+            </div>
+            <div class="pb-room-created" id="pbRoomCreated" hidden>
+              <p class="eyebrow">Your booth code</p>
+              <div class="pb-room-code" id="pbRoomCodeDisplay">------</div>
+              <p>Send this code to your partner. When they join, both cameras will connect to this booth.</p>
+              <div class="pb-room-created-actions">
+                <button type="button" class="btn" id="pbRoomContinueBtn">Continue to camera</button>
+                <button type="button" class="pb-btn-outline" id="pbRoomBackBtn">Use a different option</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAMERA + SETTINGS (shown only after choosing solo/create/join) -->
+          <div class="pb-panel pb-setup-panel" id="pbSetup" hidden>
+            <div class="pb-setup-row">
+              <label class="pb-field">
+                <span id="pbPosesLabel">Poses per strip</span>
+                <select id="pbPosesSelect">
+                  <option value="3">3</option>
+                  <option value="4" selected>4</option>
+                  <option value="6">6</option>
+                </select>
+              </label>
+              <label class="pb-field">
+                <span id="pbFilterLabel">Filter</span>
+                <select id="pbFilterSelect"></select>
+              </label>
+            </div>
+            <button type="button" class="btn pb-start-btn" id="pbStartBtn">
+              Turn on camera
+            </button>
+            <p class="pb-hint" id="pbSetupHint">
+              Works best when you're both online at the same time. If your
+              partner isn't here yet, the booth will wait — or you can start
+              in solo mode.
+            </p>
+          </div>
+
+          <!-- LIVE STAGE -->
+          <div class="pb-panel pb-stage-panel" id="pbStage" hidden>
+            <div class="pb-video-row">
+              <div class="pb-video-box pb-local">
+                <video id="pbLocalVideo" autoplay playsinline muted></video>
+                <span class="pb-video-label" id="pbLocalLabel"><span class="pb-video-dot" aria-hidden="true"></span>You</span>
+              </div>
+              <div class="pb-video-box pb-remote">
+                <video id="pbRemoteVideo" autoplay playsinline muted></video>
+                <span class="pb-video-label" id="pbRemoteLabel"><span class="pb-video-dot" aria-hidden="true"></span>Partner</span>
+                <div class="pb-video-status" id="pbRemoteStatus">
+                  Waiting for partner…
+                </div>
+              </div>
+              <div class="pb-flash" id="pbFlash"></div>
+              <div class="pb-countdown-overlay" id="pbCountdownOverlay" hidden>
+                <span class="pb-countdown-ring" aria-hidden="true"></span>
+                <span id="pbCountdownNum">3</span>
+              </div>
+            </div>
+
+            <div class="pb-stage-controls">
+              <label class="pb-field pb-field-inline" id="pbStageFilterField">
+                <span id="pbFilterLabelStage">Filter</span>
+                <select id="pbFilterSelectStage"></select>
+              </label>
+              <div class="pb-shot-progress">
+                <p class="pb-shot-counter" id="pbShotCounter">Shot 1 of 4</p>
+                <div class="pb-shot-dots" id="pbShotDots" aria-hidden="true"></div>
+              </div>
+              <div class="pb-thumbs-row" id="pbThumbsRow"></div>
+              <div class="pb-btn-row">
+                <button type="button" class="btn pb-take-btn" id="pbTakeBtn" disabled>
+                  Start countdown
+                </button>
+                <button
+                  type="button"
+                  class="pb-btn-outline"
+                  id="pbRetakeBtn"
+                  hidden
+                >
+                  Retake last
+                </button>
+                <button
+                  type="button"
+                  class="pb-btn-outline"
+                  id="pbFinishBtn"
+                  hidden
+                >
+                  Finish strip
+                </button>
+              </div>
+            </div>
+
+            <div class="pb-solo-notice" id="pbSoloNotice" hidden>
+              <p id="pbSoloText">Still just you here. Want to try it solo?</p>
+              <button type="button" class="pb-btn-outline" id="pbSoloBtn">
+                Use solo mode
+              </button>
+            </div>
+          </div>
+
+          <!-- PREVIEW / ASSEMBLY -->
+          <div class="pb-panel pb-editor-panel" id="pbPreviewStage" hidden>
+            <!-- The strip editor (photobooth-studio.js) mounts into #pbStudioRoot.
+                 The original editor below stays as a fallback and is hidden as
+                 soon as the studio loads. -->
+            <div id="pbStudioRoot"></div>
+            <div id="pbLegacyEditor">
+            <div class="pb-preview-layout">
+              <div class="pb-strip-canvas-wrap">
+                <span class="pb-tape pb-tape-left" aria-hidden="true"></span>
+                <span class="pb-tape pb-tape-right" aria-hidden="true"></span>
+                <canvas id="pbStripCanvas"></canvas>
+              </div>
+              <div class="pb-preview-controls">
+                <div class="pb-editor-section">
+                  <p class="pb-controls-label" id="pbBgColorLabelRow"><span class="pb-section-icon" aria-hidden="true">🎨</span>Background color</p>
+                  <label class="pb-color-label pb-color-label-solo">
+                    <span class="pb-color-swatch-frame">
+                      <input type="color" id="pbBgColorInput" value="#ffffff" />
+                    </span>
+                    <span id="pbBgColorLabel">Pick any color</span>
+                  </label>
+                </div>
+
+                <div class="pb-editor-section">
+                  <p class="pb-controls-label" id="pbBorderLabel"><span class="pb-section-icon" aria-hidden="true">✨</span>Pattern</p>
+                  <div class="pb-theme-swatches" id="pbThemeSwatches"></div>
+
+                  <label class="pb-color-label" id="pbPatternColorRow" hidden>
+                    <span class="pb-color-swatch-frame">
+                      <input type="color" id="pbPatternColorInput" value="#111111" />
+                    </span>
+                    <span id="pbPatternColorLabel">Pattern &amp; frame color</span>
+                  </label>
+                </div>
+
+                <div class="pb-editor-section pb-editor-section-tight">
+                  <label class="pb-polaroid-toggle">
+                    <input type="checkbox" id="pbPolaroidToggle" />
+                    <span class="pb-switch" aria-hidden="true"></span>
+                    <span id="pbPolaroidLabel">Polaroid style (no frame border)</span>
+                  </label>
+                  <label class="pb-caption-label">
+                    <span id="pbCaptionLabel">Caption (optional)</span>
+                    <input
+                      type="text"
+                      id="pbCaptionInput"
+                      maxlength="40"
+                      placeholder="Us · 2026"
+                    />
+                  </label>
+                </div>
+
+                <div class="pb-editor-actions">
+                  <div class="pb-btn-row">
+                    <button type="button" class="btn pb-download-btn" id="pbDownloadBtn">
+                      <span class="pb-btn-icon" aria-hidden="true">⬇</span>Download strip
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    class="pb-btn-outline pb-new-strip-btn"
+                    id="pbNewStripBtn"
+                  >
+                    Start a new booth
+                  </button>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <canvas id="pbShotCanvas" hidden></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= TAB: CALENDAR ============================= -->
+    <div class="tab-panel" id="tab-calendar">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Our schedules</p>
+            <h2>Shared Calendar</h2>
+            <p>
+              See each other's plans so we know when to text — and when to wait.
+            </p>
+          </div>
+
+          <span
+            class="bucket-sync-pill cal-sync-pill local" tabindex="0"
+            id="calSyncPill"
+          ></span>
+
+          <div class="cal-toolbar">
+            <div class="cal-nav">
+              <button
+                type="button"
+                id="calPrevMonth"
+                aria-label="Previous month"
+              >
+                ‹
+              </button>
+              <div class="cal-month-label" id="calMonthLabel">Month</div>
+              <button type="button" id="calNextMonth" aria-label="Next month">
+                ›
+              </button>
+            </div>
+            <div class="cal-filters" id="calFilters">
+              <button
+                type="button"
+                class="cal-filter-btn active"
+                data-filter="all"
+              >
+                All
+              </button>
+              <button
+                type="button"
+                class="cal-filter-btn partnerA"
+                data-filter="partnerA"
+                id="calFilterA"
+              >
+                Partner A
+              </button>
+              <button
+                type="button"
+                class="cal-filter-btn partnerB"
+                data-filter="partnerB"
+                id="calFilterB"
+              >
+                Partner B
+              </button>
+              <button
+                type="button"
+                class="cal-filter-btn both"
+                data-filter="both"
+                id="calFilterBoth"
+              >
+                Both
+              </button>
+            </div>
+          </div>
+
+          <div class="cal-grid" id="calGrid"></div>
+
+          <div class="cal-day-panel" id="calDayPanel">
+            <h3 id="calDayTitle">Select a day</h3>
+            <div id="calDayEvents"></div>
+          </div>
+
+          <div
+            class="music-add-form"
+            id="calAddForm"
+            style="max-width: 720px; margin: 0 auto"
+          >
+            <h3 id="calAddHeading">Add to the calendar</h3>
+            <div class="music-add-grid">
+              <div class="music-add-field full">
+                <label for="calTitle">What</label>
+                <input
+                  type="text"
+                  id="calTitle"
+                  maxlength="120"
+                  placeholder="Class, work, study, date night…"
+                />
+              </div>
+              <div class="music-add-field full">
+                <label for="calBucketLink">From bucket list (optional)</label>
+                <select id="calBucketLink">
+                  <option value="">— None —</option>
+                </select>
+              </div>
+              <div class="music-add-field">
+                <label for="calDate">Date</label>
+                <input type="date" id="calDate" />
+              </div>
+              <div class="music-add-field">
+                <label for="calPerson">Who</label>
+                <select id="calPerson">
+                  <option value="partnerA" data-names="{partnerA}">Partner A</option>
+                  <option value="partnerB" data-names="{partnerB}">Partner B</option>
+                  <option value="both">Both of us</option>
+                </select>
+              </div>
+              <div class="music-add-field">
+                <label for="calMarker">Icon</label>
+                <select id="calMarker">
+                  <option value="circle">● Normal</option>
+                  <option value="square">■ Hangout</option>
+                  <option value="star">★ Important</option>
+                  <option value="heart">♥ Special</option>
+                </select>
+              </div>
+              <div class="music-add-field">
+                <label for="calStart">Start (optional)</label>
+                <input type="time" id="calStart" />
+              </div>
+              <div class="music-add-field">
+                <label for="calEnd">End (optional)</label>
+                <input type="time" id="calEnd" />
+              </div>
+              <div class="music-add-field">
+                <label for="calRepeat">Repeat</label>
+                <select id="calRepeat">
+                  <option value="none">Does not repeat</option>
+                  <option value="daily">Every day</option>
+                  <option value="weekly">Every week</option>
+                  <option value="monthly">Every month</option>
+                  <option value="yearly">Every year</option>
+                </select>
+              </div>
+              <div class="music-add-field">
+                <label for="calRepeatUntil">Repeat until (optional)</label>
+                <input type="date" id="calRepeatUntil" />
+              </div>
+              <div class="music-add-field full">
+                <label for="calNotes">Notes (optional)</label>
+                <textarea
+                  id="calNotes"
+                  maxlength="280"
+                  placeholder="Don't call during this, or free after…"
+                ></textarea>
+              </div>
+            </div>
+            <div class="music-add-actions">
+              <button
+                type="button"
+                class="btn outline"
+                id="calCancelEditBtn"
+                style="display: none"
+              >
+                Cancel
+              </button>
+              <button type="button" class="btn" id="calAddBtn">
+                Add event
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= TAB: DAY CARDS ============================= -->
+    <div class="tab-panel" id="tab-daycards">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Little notes</p>
+            <h2>Day Cards</h2>
+            <p>
+              Write each other something during the day. Cards expire after 24
+              hours.
+            </p>
+          </div>
+          <span
+            class="bucket-sync-pill" tabindex="0"
+            id="daycardsSyncPill"
+            style="display: block; text-align: center; margin: 0 auto 20px"
+          ></span>
+
+          <div class="daycard-compose">
+            <label
+              for="daycardText"
+              style="
+                display: block;
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                font-weight: 700;
+                color: var(--ink-soft);
+                margin-bottom: 6px;
+              "
+              >Your message</label
+            >
+            <textarea
+              id="daycardText"
+              maxlength="800"
+              placeholder="Thinking of you… (optional if you send audio)"
+            ></textarea>
+            <div class="daycard-audio-bar">
+              <button type="button" class="btn outline" id="daycardRecBtn">
+                Record
+              </button>
+              <button
+                type="button"
+                class="btn outline"
+                id="daycardClearAudioBtn"
+                style="display: none"
+              >
+                Clear audio
+              </button>
+              <label class="btn outline" style="cursor: pointer; margin: 0">
+                Upload audio
+                <input
+                  type="file"
+                  id="daycardAudioFile"
+                  accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm"
+                  hidden
+                />
+              </label>
+              <span class="daycard-audio-status" id="daycardAudioStatus"></span>
+            </div>
+            <div class="daycard-compose-row">
+              <select id="daycardFrom" aria-label="From">
+                <option value="partnerA" data-names="From {partnerA}">From Partner A</option>
+                <option value="partnerB" data-names="From {partnerB}">From Partner B</option>
+              </select>
+              <button type="button" class="btn" id="daycardSendBtn">
+                Send card
+              </button>
+            </div>
+          </div>
+
+          <div class="daycard-list" id="daycardList"></div>
+          <p class="daycard-empty" id="daycardEmpty" hidden>
+            No cards yet — leave the first one above.
+          </p>
+
+          <details class="daycard-help" id="daycardKikiHelp">
+            <summary>Optional: use Kikivoice (cloned voice)</summary>
+            <div class="daycard-help-body">
+              <p>
+                Kikivoice can clone a short sample of your voice and turn text
+                into an MP3. It has no API, so you use it on their site, then
+                upload the file here.
+              </p>
+              <ol>
+                <li>
+                  Open
+                  <a href="https://kikivoice.ai" target="_blank" rel="noopener"
+                    >kikivoice.ai</a
+                  >
+                  (free credits reset weekly).
+                </li>
+                <li>
+                  Upload 3–15 seconds of clean speech (no music/background
+                  noise).
+                </li>
+                <li>Paste the message you want spoken and generate audio.</li>
+                <li>Download the MP3.</li>
+                <li>
+                  Back here: <strong>Upload audio</strong>, optionally add text,
+                  then <strong>Send card</strong>.
+                </li>
+              </ol>
+              <p style="margin-top: 10px">
+                For everyday notes, <strong>Record</strong> on this page is
+                simpler — it’s really your voice, with no weekly limit.
+              </p>
+            </div>
+          </details>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================= TAB: OUR GAMES ============================= -->
+    <div class="tab-panel" id="tab-games">
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">A little collection, just for us</p>
+            <h2>Our Games</h2>
+            <p>Five decks, five different feelings. Pick one and draw a card.</p>
+          </div>
+
+          <!-- ---------- HUB ---------- -->
+          <div id="gamesHub" class="games-view">
+            <div class="games-hub-actions">
+              <button type="button" class="btn" id="gamesSurpriseBtn">Random</button>
+            </div>
+
+            <div id="gamesDailyCard" class="games-daily-card" hidden>
+              <div class="games-daily-label">Card of the Day</div>
+              <div class="games-daily-q" id="gamesDailyQ"></div>
+              <div class="games-daily-sub" id="gamesDailySub"></div>
+            </div>
+
+            <div id="gamesGrid" class="games-grid"></div>
+
+            <!-- Extra couple games link -->
+            <div class="games-extra-links">
+              <p class="games-extra-note">For extra couple games beyond the ones here.</p>
+              <a
+                class="btn games-link-btn"
+                href="https://lovebae.app/games/never-have-i-ever"
+                target="_blank"
+                rel="noopener noreferrer"
+              >Play More Couple Games</a>
+            </div>
+
+            <div class="games-stats" id="gamesStats">
+              <div class="games-stats-title">Our Game Stats</div>
+              <div class="games-stats-rows" id="gamesStatsRows"></div>
+              <div class="games-stats-total" id="gamesStatsTotal"></div>
+            </div>
+          </div>
+
+          <!-- ---------- LOBBY ---------- -->
+          <div id="gamesLobby" class="games-view" hidden>
+            <button type="button" class="btn outline games-back-btn" data-games-back="hub">← Back to Our Games</button>
+            <div class="games-lobby-head">
+              <div class="games-lobby-emoji" id="lobbyEmoji"></div>
+              <h3 id="lobbyTitle"></h3>
+              <p id="lobbySubtitle"></p>
+              <p class="games-lobby-count" id="lobbyCount"></p>
+            </div>
+
+            <div class="games-lobby-block">
+              <div class="games-lobby-label">Categories</div>
+              <div class="games-chip-row" id="lobbyCategories"></div>
+            </div>
+
+            <div class="games-lobby-block">
+              <div class="games-lobby-label">Rounds</div>
+              <div class="games-chip-row" id="lobbyRounds">
+                <button type="button" class="games-chip" data-rounds="5">5</button>
+                <button type="button" class="games-chip" data-rounds="10">10</button>
+                <button type="button" class="games-chip" data-rounds="20">20</button>
+                <button type="button" class="games-chip active" data-rounds="0">∞ Endless</button>
+              </div>
+            </div>
+
+            <button type="button" class="btn games-start-btn" id="lobbyStartBtn">Start Game</button>
+          </div>
+
+          <!-- ---------- PLAY ---------- -->
+          <div id="gamesPlay" class="games-view" hidden>
+            <div class="games-play-bar">
+              <button type="button" class="btn outline games-back-btn" data-games-back="hub" id="gamesExitBtn">Exit</button>
+              <div class="games-progress-wrap">
+                <div class="games-progress-bar"><div class="games-progress-fill" id="gamesProgressFill"></div></div>
+                <span class="games-progress-label" id="gamesProgressLabel"></span>
+              </div>
+            </div>
+
+            <div class="games-card-stage">
+              <div class="games-card" id="gamesCard">
+                <div class="games-card-top">
+                  <span class="games-card-emoji" id="cardEmoji"></span>
+                  <span class="games-card-cat" id="cardCategory"></span>
+                  <span class="games-card-rare" id="cardRare" hidden>⭐ Special</span>
+                </div>
+                <p class="games-card-q" id="cardQuestion"></p>
+                <p class="games-card-followup" id="cardFollowup"></p>
+              </div>
+            </div>
+
+            <div class="games-action-row">
+              <button type="button" class="btn" id="cardSkipBtn">Skip</button>
+              <button type="button" class="btn" id="cardNextBtn">Next Card →</button>
+            </div>
+
+            <div class="games-end-row">
+              <button type="button" class="btn outline games-link-btn" id="cardEndBtn">End game & see summary</button>
+            </div>
+          </div>
+
+          <!-- ---------- END / SUMMARY ---------- -->
+          <div id="gamesEnd" class="games-view" hidden>
+            <div class="games-end-card">
+              <div class="games-end-emoji" id="endEmoji"></div>
+              <h3 id="endTitle"></h3>
+              <div id="endStats" class="games-end-stats"></div>
+              <div id="futureSummary" class="games-future-summary" hidden></div>
+              <div class="games-end-actions">
+                <button type="button" class="btn" id="endPlayAgainBtn">Play Again</button>
+                <button type="button" class="btn outline" data-games-back="hub">← Back to Our Games</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+
+    <!-- ============================= LIGHTBOX ============================= -->
+    <div class="lightbox" id="lightbox">
+      <button class="lightbox-close" id="lbClose" aria-label="Close">✕</button>
+      <button class="lightbox-nav prev" id="lbPrev" aria-label="Previous">
+        ‹
+      </button>
+      <button class="lightbox-nav next" id="lbNext" aria-label="Next">›</button>
+      <div class="lightbox-content">
+        <div class="lightbox-img" id="lbImg"></div>
+        <p class="lightbox-cap" id="lbCap"></p>
+      </div>
+    </div>
+
+    <!-- ============================= OPEN-WHEN MODAL ============================= -->
+    <div class="modal-overlay" id="owModal">
+      <div class="modal-box">
+        <div class="ic">💚</div>
+        <h3 id="owModalTitle"></h3>
+        <p class="modal-scroll" id="owModalText"></p>
+        <button class="btn modal-close" id="owModalClose">Close</button>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="confirmModal">
+      <div class="confirm-box">
+        <p id="confirmModalText"></p>
+        <div class="confirm-actions">
+          <button type="button" class="confirm-cancel" id="confirmModalCancel">
+            Cancel
+          </button>
+          <button type="button" class="confirm-delete" id="confirmModalOk">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================= FINAL SECTION ============================= -->
+    <section class="section final-section">
+      <div class="container">
+        <p class="eyebrow">One more thing</p>
+        <h2 style="margin: 10px 0 18px">Until Then...</h2>
+        <p
+          style="
+            max-width: 480px;
+            margin: 0 auto 30px;
+            color: var(--ink-soft);
+            font-size: 1.05rem;
+          "
+        >
+          Until I can hold you again, I'll keep collecting little moments,
+          memories, pictures, and reasons to look forward to the next one.
+        </p>
+        <div class="final-photo">
+          <div
+            class="photo-placeholder"
+            id="finalPhoto"
+            style="border: none; border-radius: 0"
+          >
+            our photo<br /><small>(edit CONFIG.photos.final)</small>
+          </div>
+        </div>
+        <p
+          class="script"
+          style="
+            font-size: 1.6rem;
+            color: var(--green-deep);
+            margin-bottom: 6px;
+          "
+        >
+          Thank you for being you.
+        </p>
+        <p style="font-weight: 700; margin-bottom: 30px">See you soon. ♥</p>
+        <div
+          class="count-grid four"
+          id="finalCountdown"
+          style="max-width: 520px"
+        >
+          <div class="count-unit">
+            <div class="num" id="f-days">0</div>
+            <div class="lbl">Days</div>
+          </div>
+          <div class="count-unit">
+            <div class="num" id="f-hours">0</div>
+            <div class="lbl">Hours</div>
+          </div>
+          <div class="count-unit">
+            <div class="num" id="f-mins">0</div>
+            <div class="lbl">Minutes</div>
+          </div>
+          <div class="count-unit">
+            <div class="num" id="f-secs">0</div>
+            <div class="lbl">Seconds</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Made with love, just for you. ♥
+      </p>
+      <p class="names" id="footerNames"></p>
+      <p id="footerYear"></p>
+      <p class="tmdb-credit">
+        Movie data and posters from
+        <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>.
+        This product uses the TMDB API but is not endorsed or certified by TMDB.
+      </p>
+    </footer>
+
+    <button
+      type="button"
+      class="back-to-top"
+      id="backToTop"
+      aria-label="Back to top"
+      title="Back to top"
+    >
+      ↑
+    </button>
+
+    <!-- Persistent background-music mini player. Lives outside every
+         tab panel, so it survives switching tabs and stays
+         visible/clickable. JS
+         shows/hides it based on whether something is playing and
+         whether the person is currently on the Music tab itself (see
+         musicUpdateMiniVisibility in app.js). Hidden by default. -->
+    <div class="music-mini-player" id="musicMiniPlayer" hidden>
+      <button
+        type="button"
+        class="music-mini-collapse"
+        id="musicMiniCollapseBtn"
+        aria-label="Minimize player"
+        title="Minimize"
+      >
+        ⌄
+      </button>
+      <div class="music-mini-cover" id="musicMiniCover" aria-hidden="true">
+        <div class="music-mini-cover-disc"></div>
+      </div>
+      <div class="music-mini-info">
+        <div class="music-mini-title" id="musicMiniTitle"></div>
+        <div class="music-mini-artist" id="musicMiniArtist"></div>
+      </div>
+      <div class="music-mini-controls">
+        <button
+          type="button"
+          class="music-mini-btn"
+          id="musicMiniPrevBtn"
+          aria-label="Previous song"
+          title="Previous"
+        >
+          ⏮
+        </button>
+        <button
+          type="button"
+          class="music-mini-btn music-mini-play-btn"
+          id="musicMiniPlayBtn"
+          aria-label="Play or pause"
+          title="Play/Pause"
+        >
+          ⏸
+        </button>
+        <button
+          type="button"
+          class="music-mini-btn"
+          id="musicMiniNextBtn"
+          aria-label="Next song"
+          title="Next"
+        >
+          ⏭
+        </button>
+      </div>
+      <button
+        type="button"
+        class="music-mini-stop"
+        id="musicMiniStopBtn"
+        aria-label="Stop music"
+        title="Stop"
+      >
+        ✕
+      </button>
+    </div>
+    <!-- Small reopen nub, shown only while the mini player has been
+         manually minimized but a song is still playing. -->
+    <button
+      type="button"
+      class="music-mini-nub"
+      id="musicMiniNub"
+      hidden
+      aria-label="Reopen music player"
+      title="Reopen music player"
+    >
+      <span class="music-mini-nub-icon" aria-hidden="true">♪</span>
+    </button>
+
+
+    <!-- Data first (CONFIG, quotes, quizzes, games), then logic. -->
+    <script src="js/data/config.js"></script>
+    <script src="js/data/quotes.js"></script>
+    <script src="js/data/quizzes.js"></script>
+    <script src="js/data/games.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/enhancements.js"></script>
+    <script src="js/photobooth-studio.js"></script>
+    <script src="js/haptics.js"></script>
+    <script src="js/pwa.js"></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Dependencies and build output
+node_modules/
+_site/
+
+# Local secrets and logs — never commit these
+.env
+.env.*
+.dev.vars
+*.log
+
+# Cloudflare Worker (news-backend) local state
+.wrangler/
+.vercel/
