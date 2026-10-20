@@ -2799,14 +2799,22 @@ function isMeteredTurnConfigured() {
   );
 }
 
+// True for an empty value or one still holding a placeholder — either the
+// "__SOME_NAME__" kind the deploy fills in, or an old "YOUR_..." one. Uses a
+// pattern rather than the exact names so the deploy's find/replace can
+// never rewrite this check.
+function isPlaceholderValue(v) {
+  const s = String(v || "").trim();
+  return !s || /^__[A-Z0-9_]+__$/.test(s) || /^YOUR_/.test(s);
+}
+
 function isFirebaseConfigured() {
   const f = CONFIG.firebase;
-  return (
+  return !!(
     f &&
-    f.apiKey &&
-    f.apiKey !== "YOUR_API_KEY" &&
-    f.projectId &&
-    f.projectId !== "YOUR_PROJECT"
+    !isPlaceholderValue(f.apiKey) &&
+    !isPlaceholderValue(f.projectId) &&
+    !isPlaceholderValue(f.appId)
   );
 }
 
@@ -5047,12 +5055,10 @@ let memoriesSyncLive = false;
 
 function isCloudinaryConfigured() {
   const c = CONFIG.cloudinary;
-  return (
+  return !!(
     c &&
-    c.cloudName &&
-    c.cloudName !== "YOUR_CLOUD_NAME" &&
-    c.uploadPreset &&
-    c.uploadPreset !== "YOUR_UPLOAD_PRESET"
+    !isPlaceholderValue(c.cloudName) &&
+    !isPlaceholderValue(c.uploadPreset)
   );
 }
 
